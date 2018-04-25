@@ -1,22 +1,44 @@
 #!/bin/sh
-###
+##########################
 #
 # Server startscript
 #
-# ver 2.0
+# ver 2.1
 #
-###
+#########################
 
 WHITE='\033[0;37m'
 GREEN='\033[0;32m'
-stopsec=15
+LRED='\033[1;31m'
 
-if [ -e "servername.dat" ]; then
-    #SZERVER=`cat servername.dat | awk ' {print $1 }' | grep '^[A-Z,a-z,0-9]'`
-    SZERVER=`cat servername.dat`
+# config file for wait to stop server
+if [ -e "srv_cfg_stopsec.dat" ]; then
+    STOPSEC=`cat srv_cfg_stopsec.dat | awk ' {print $1 }' | grep '^[0-9]'`
+    if [ -z $STOPSEC ] || [ $STOPSEC -lt 5 ]; then
+	printf "${GREEN}"
+	printf "Warning: Your waiting seconds are too small at least should be 5.\n"
+	printf "5">srv_cfg_stopsec.dat
+	printf "${LRED}"
+	printf "Stop seconds seted to default 15 sec in \"srv_cfg_stopsec.dat\"\n"
+	STOPSEC=15
+	printf "${WHITE}"
+    fi
+###############################
+else
+    printf "${LRED}"
+    printf "Error: \"srv_cfg_stopsec.dat\" missing.\Creating.\n\n"
+    printf "15">srv_cfg_stopsec.dat
+    printf "${WHITE}"
+    STOPSEC=15
+fi
+
+# config file for start stop java server
+if [ -e "srv_cfg_servername.dat" ]; then
+    #SZERVER=`cat srv_cfg_servername.dat | awk ' {print $1 }' | grep '^[A-Z,a-z,0-9]'`
+    SZERVER=`cat srv_cfg_servername.dat`
 else
     printf "${GREEN}"
-    printf "Error: "servername.dat" missing.\nExitig.\n\n"
+    printf "Error: \"srv_cfg_servername.dat\" missing.\nExiting.\n\n"
     printf "${WHITE}"
     exit 1
 fi
@@ -54,13 +76,13 @@ if [ -e /proc/$pid ]; then
 	printf "${GREEN}$SZERVER Server running, Stopping it.\n"
 	sleep 1;
 	kill -15 $pid;
-	printf "Wait up to $stopsec second(s) for stop server...\n"
+	printf "Wait up to $STOPSEC second(s) for stop server...\n"
 	while ps -p $pid > /dev/null; do
 	    sleep 1;
 	    sec=$((sec + 1));
-	    if [ $sec -eq $stopsec ]; then
+	    if [ $sec -eq $STOPSEC ]; then
 		printf "Stopping Timeout. Terminate stopping script. Check for dead thread(s)."
-		printf "PID: "
+		printf "$SZERVER server PID: "
 		cat $SZERVER.pid
 		exit 1
 	    fi
@@ -94,7 +116,7 @@ fi
 	debug
 	;;
     *)
-    echo "${GREEN}Usage: $0 {start|stop|restart|debug}${WHITE}"
+    printf "${GREEN}Usage: $0 {start|stop|restart|debug}${WHITE}"
     exit 1
     ;;
     
