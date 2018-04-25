@@ -1,4 +1,4 @@
-SpigotMC / BungeeCorf startscript
+SpigotMC / BungeeCord startscript
 
 This is a script for start/stop/restart Bungeechord / SpigotMC
 
