@@ -3,13 +3,15 @@
 #
 # Server startscript
 #
-# ver 2.1
+# ver 2.2
 #
 #########################
 
 WHITE='\033[0;37m'
 GREEN='\033[0;32m'
 LRED='\033[1;31m'
+
+PARAM2=$2
 
 # config file for wait to stop server
 if [ -e "srv_cfg_stopsec.dat" ]; then
@@ -100,6 +102,41 @@ if [ -e /proc/$pid ]; then
 fi
 }
 
+log(){
+if [ -e "$SZERVER.log" ]; then
+    printf "${GREEN}"
+    printf "Listing actual log file:\n"
+    case "$PARAM2" in
+	f)
+	    printf "Mode: follow, exit with ctrl\+c\n"
+	    printf "${WHITE}"
+	    tail -n40 -f $SZERVER.log 
+	    exit 1
+	;;
+	t)
+	    printf "Mode: tail\n"
+	    printf "${WHITE}"
+	    tail -n40 $SZERVER.log
+	    exit 1
+	;;
+    *)
+    # cat log file
+    printf "Mode: tail\n"
+    cat "$SZERVER.log"
+    printf "${WHITE}"
+    printf "\n"
+    ;;
+    esac
+
+else
+    printf "${GREEN}"
+    printf "Error: \"$SZERVER.log\" missing.\nExiting.\n\n"
+    printf "${WHITE}"
+    exit 1
+fi
+}
+
+
 
  case "$1" in
     start)
@@ -115,8 +152,13 @@ fi
     debug)
 	debug
 	;;
+    log)
+
+	log $2
+	;;
     *)
-    printf "${GREEN}Usage: $0 {start|stop|restart|debug}${WHITE}"
+    printf "${GREEN}Usage: $0 {start|stop|restart|debug|log [f|t]}\n"
+    printf "${WHITE}"
     exit 1
     ;;
     
