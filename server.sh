@@ -3,7 +3,7 @@
 #
 # Java Server startscript
 #
-# ver 2.27
+# ver 2.27a
 #
 #########################
 
@@ -105,21 +105,22 @@ log(){
 if [ -e "$SZERVER.log" ]; then
     printf "${GREEN}"
     printf "Listing actual log file:\n"
+    printf "Mode: "
     case "$PARAM2" in
 	f)
-	    printf "Mode: follow, exit with ctrl\+c\n"
+	    printf "follow - list last $LOGLINES lines of log and follow changes. Exit with ctrl\+c\n"
 	    printf "${WHITE}"
 	    tail -n$LOGLINES -f $SZERVER.log
 	    exit 1
 	;;
 	t)
-	    printf "Mode: tail\n"
+	    printf "tail - list last $LOGLINES lines of log.\n"
 	    printf "${WHITE}"
 	    tail -n$LOGLINES $SZERVER.log
 	    exit 1
 	;;
     *)
-    # cat log file
+    # no param cat log file
     printf "Mode: tail\n"
     cat "$SZERVER.log"
     printf "${WHITE}"
