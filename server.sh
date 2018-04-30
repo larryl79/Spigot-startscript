@@ -3,26 +3,30 @@
 #
 # Java Server startscript
 #
-# ver 2.8
+# ver 2.85
 #
 #########################
 
+# Color Codes
 WHITE='\033[0;37m'
 GREEN='\033[0;32m'
 LRED='\033[1;31m'
 YELLOW='\033[1;33m'
 
+# Some helper string. Don't edit them!
 PARAM2=$2
-VERSION=2.8
+VERSION=2.85
+
+############################################################################ Checking Config files ###############################
 
 # config file for tail files
-if [ -e "srv_cfg_stopsec.dat" ]; then
-    LOGLINES=`cat srv_cfg_logines.dat | awk ' {print $1 }' | grep '^[0-9]'`
+if [ -e "srv_cfg_loglines.dat" ]; then
+    LOGLINES=`cat srv_cfg_loglines.dat | awk ' {print $1 }' | grep '^[0-9]'`
     if [ -z $LOGLINES ] || [ $LOGLINES -lt 5 ]; then
 	printf "${YELLOW}Warning:${GREEN} Your tail log lines are too small at least should be 5.\n"
 	printf "40">srv_cfg_loglines.dat
-	printf "${LRED}"
-	printf "Tail log lines set to default 40 in \"srv_cfg_loglines.dat\"\n"
+	printf "${GREEN}"
+	printf "Tail log lines set to default ${LRED}40${GREEN} in \"${LRED}srv_cfg_loglines.dat${GREEN}\"\n"
 	LOGLINES=40
 	printf "${WHITE}"
     fi
@@ -30,9 +34,8 @@ else
     printf "${YELLOW}Warning:${GREEN} \"${LRED}srv_cfg_loglines.dat${GREEN}\" missing.\Creating.\n\n"
     printf "40">srv_cfg_loglines.dat
     printf "${WHITE}"
-    STOPSEC=15
+    LOGLINES=15
 fi
-
 
 # config file for wait to stop server
 if [ -e "srv_cfg_stopsec.dat" ]; then
@@ -58,18 +61,34 @@ if [ -e "srv_cfg_servername.dat" ]; then
     SZERVER=`cat srv_cfg_servername.dat`
 else
     printf "${GREEN}"
-    printf "${LRED}Error:${GREEN} \"srv_cfg_servername.dat\" missing.\nExiting.\n\n"
+    printf "${LRED}Error:${GREEN} \"${LRED}srv_cfg_servername.dat${GREEN}\" missing.\nExiting.\n\n"
+    printf "Create and insert your server program filenname without extension in config file before start using this program.\n"
+    printf "Exiting.\n\n"
     printf "${WHITE}\n"
     exit 1
 fi
 
+# config file for server progam parameter(s)
+if [ -e "srv_cfg_serverparam.dat" ]; then
+    #SZERVER=`cat srv_cfg_serverparam.dat | awk ' {print $1 }' | grep '^[A-Z,a-z,0-9]'`
+    SRVPARAM=`cat srv_cfg_serverparam.dat`
+else
+    printf "${GREEN}"
+    printf "${YELLOW}Warning:${GREEN} \"${LRED}srv_cfg_serverparam.dat${GREEN}\" missing.\nCreating.\n"
+    touch srv_cfg_serverparam.dat
+    printf "${WHITE}\n"
+    SRVPARAM=''
+fi
+
+
+############################################################################ Functions ###########################################
 
 start(){
     # start script
     rm $SZERVER.pid.old 2>/dev/null
     printf "${GREEN}"
     printf "Starting $SZERVER server in background ...\n"
-    java -Xms1024m -Xmx1024m -Dfile.encoding=UTF-8 -jar $SZERVER.jar --noconsole >$SZERVER.log & echo $! > $SZERVER.pid
+    java -Xms1024m -Xmx1024m -Dfile.encoding=UTF-8 -jar $SZERVER.jar $SRVPARAM >$SZERVER.log & echo $! > $SZERVER.pid
     printf "PID: "
     cat $SZERVER.pid
     printf "${WHITE}\n"
@@ -184,8 +203,12 @@ help(){
     printf "\n"
     printf "${LRED}srv_cfg_servername.dat${GREEN}		Your server program (file)name without extension.\n"
     printf "				(e.g. MyServer) itt will start MyServer.jar and create MyServer.pid and MyServer.log\n"
+    printf "${LRED}srv_cfg_serverparam.dat${GREEN}		Insert your parameters into this config file e.g. --noconsole \n"
+    printf "				${YELLOW}Warning!!!${GREEN} No parameters passing trough from this file for debug start!\n"
     printf "${LRED}srv_cfg_stopsec.dat${GREEN}		Wait seconds for stop server before this script exit with warn you about dead process.\n"
-    printf "				Only numbers in config file. (e.g 10) minimum is 5 second\n"
+    printf "				Only numbers in config file. (e.g 10) minimum is 5 second, default 15 second.\n"
+    printf "${LRED}srv_cfg_loglines.dat${GREEN}		How many last lines show from log file.\n"
+    printf "				Only numbers in config file. (e.g 40) minimum value is 5, default value is 40.\n"
     printf "${WHITE}\n"
 }
 
