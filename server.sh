@@ -3,7 +3,7 @@
 #
 # Java Server startscript
 #
-# ver 2.75
+# ver 2.8
 #
 #########################
 
@@ -13,8 +13,26 @@ LRED='\033[1;31m'
 YELLOW='\033[1;33m'
 
 PARAM2=$2
-LOGLINES=40
-VERSION=2.75
+VERSION=2.8
+
+# config file for tail files
+if [ -e "srv_cfg_stopsec.dat" ]; then
+    LOGLINES=`cat srv_cfg_logines.dat | awk ' {print $1 }' | grep '^[0-9]'`
+    if [ -z $LOGLINES ] || [ $LOGLINES -lt 5 ]; then
+	printf "${YELLOW}Warning:${GREEN} Your tail log lines are too small at least should be 5.\n"
+	printf "40">srv_cfg_loglines.dat
+	printf "${LRED}"
+	printf "Tail log lines set to default 40 in \"srv_cfg_loglines.dat\"\n"
+	LOGLINES=40
+	printf "${WHITE}"
+    fi
+else
+    printf "${YELLOW}Warning:${GREEN} \"${LRED}srv_cfg_loglines.dat${GREEN}\" missing.\Creating.\n\n"
+    printf "40">srv_cfg_loglines.dat
+    printf "${WHITE}"
+    STOPSEC=15
+fi
+
 
 # config file for wait to stop server
 if [ -e "srv_cfg_stopsec.dat" ]; then
@@ -156,6 +174,7 @@ help(){
     printf "${LRED}log${GREEN}	Show full log of server\n"
     printf "${LRED}log t${GREEN}	Tail of log file ( last $LOGLINES lines )\n"
     printf "${LRED}log f${GREEN}	Tail of log file and follow changes. Start with last $LOGLINES lines. Stop with ctrl+c key.\n"
+    printf "${LRED}ver${GREEN}	Check script version, and latest release on Github\n"
     printf "${LRED}help${GREEN}	This screen\n"
     printf "\n"
     printf "\n"
@@ -165,12 +184,13 @@ help(){
     printf "\n"
     printf "${LRED}srv_cfg_servername.dat${GREEN}		Your server program (file)name without extension.\n"
     printf "				(e.g. MyServer) itt will start MyServer.jar and create MyServer.pid and MyServer.log\n"
-    printf "${LRED}srv_cfg_stopsec.dat${GREEN}		Wait seconds for stop server before this script exit with warn you about dead process. Only numbers in config file. (e.g 10) minimum is 5 second\n"
+    printf "${LRED}srv_cfg_stopsec.dat${GREEN}		Wait seconds for stop server before this script exit with warn you about dead process.\n"
+    printf "				Only numbers in config file. (e.g 10) minimum is 5 second\n"
     printf "${WHITE}\n"
 }
 
 syntax(){
-    printf "${WHITE}Syntax: ${GREEN}$0 ${WHITE}{ ${LRED}start${WHITE} | ${LRED}stop${WHITE} | ${LRED}restart${WHITE} | ${LRED}debug${WHITE} | ${LRED}log ${WHITE}[${LRED}f${WHITE}|${LRED}t${WHITE}] | ${LRED}help${WHITE} | ${LRED}ver${WHITE}}\n"
+    printf "${WHITE}Syntax: ${GREEN}$0 ${WHITE}{ ${LRED}start${WHITE} | ${LRED}stop${WHITE} | ${LRED}restart${WHITE} | ${LRED}debug${WHITE} | ${LRED}log ${WHITE}[${LRED}f${WHITE}|${LRED}t${WHITE}] | ${LRED}help${WHITE} | ${LRED}ver${WHITE} }\n"
 }
 
 version(){
