@@ -3,7 +3,7 @@
 #
 # Java Server startscript
 #
-# ver 2.27a
+# ver 2.75
 #
 #########################
 
@@ -14,6 +14,7 @@ YELLOW='\033[1;33m'
 
 PARAM2=$2
 LOGLINES=40
+VERSION=2.75
 
 # config file for wait to stop server
 if [ -e "srv_cfg_stopsec.dat" ]; then
@@ -43,6 +44,7 @@ else
     printf "${WHITE}\n"
     exit 1
 fi
+
 
 start(){
     # start script
@@ -168,8 +170,24 @@ help(){
 }
 
 syntax(){
-    printf "${WHITE}Syntax: ${GREEN}$0 ${WHITE}{ ${LRED}start${WHITE} | ${LRED}stop${WHITE} | ${LRED}restart${WHITE} | ${LRED}debug${WHITE} | ${LRED}log ${WHITE}[${LRED}f${WHITE}|${LRED}t${WHITE}] | ${LRED}help${WHITE} }\n"
+    printf "${WHITE}Syntax: ${GREEN}$0 ${WHITE}{ ${LRED}start${WHITE} | ${LRED}stop${WHITE} | ${LRED}restart${WHITE} | ${LRED}debug${WHITE} | ${LRED}log ${WHITE}[${LRED}f${WHITE}|${LRED}t${WHITE}] | ${LRED}help${WHITE} | ${LRED}ver${WHITE}}\n"
 }
+
+version(){
+    printf "Version: ${GREEN}$VERSION${WHITE}\n"
+    printf "Wait a sec, checking for latest release on Github.\n"
+    # bc -l <<
+    RELEASE=`curl --silent "https://api.github.com/repos/larryl79/Spigot-startscript/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
+    echo "Git release: ${GREEN}$RELEASE${WHITE}"
+    if [ $RELEASE \> $VERSION ]; then
+	printf "${YELLOW}Warning: ${GREEN}You are not on a latest release, ${YELLOW}please update${GREEN} for new feauters and bugfies from github.\n"
+	printf "\n"
+    else
+	printf "${GREEN}You are on a latest release.\n"
+    fi
+    printf "${WHITE}"
+}
+
 
  case "$1" in
     start)
@@ -190,6 +208,9 @@ syntax(){
 	;;
     help)
 	help
+	;;
+    ver)
+	version
 	;;
     *)
     printf "Server program manager\n"
