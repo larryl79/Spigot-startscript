@@ -225,6 +225,7 @@ help(){
     printf "				Default value is: ${LRED}java -Xms1024m -Xmx1024m -Dfile.encoding=UTF-8 -jar${GREEN}\n"
     printf "${LRED}srv_cfg_servername.dat${GREEN}		Your server program (file)name without extension.\n"
     printf "				(e.g. MyServer) itt will start MyServer.jar and create MyServer.pid and MyServer.log\n"
+    printf "				No default value program will exit with error if file is missing.\n"
     printf "${LRED}srv_cfg_serverparam.dat${GREEN}		Insert your parameters into this config file e.g. --noconsole \n"
     printf "				${YELLOW}Warning!!!${GREEN} No parameters passing trough from this file for debug start!\n"
     printf "				CMDline will looks like this when you issue start:${YELLOW} ...... srv_cfg_servername.dat srv_cfg_serverparam.dat${GREEN}\n"
