@@ -3,7 +3,7 @@
 #
 # Java Server startscript
 #
-# ver 3.1
+# ver 3.11
 #
 #########################
 
@@ -110,7 +110,7 @@ start(){
     else
 	printf "${GREEN}$SZERVER server is running already with PID: "
 	cat $SZERVER.pid
-	printf ".\nNot starting it again."
+	printf "Not starting it again."
     fi
 	printf "${WHITE}\n"
 }
