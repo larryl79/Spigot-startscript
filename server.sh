@@ -3,7 +3,7 @@
 #
 # Java Server startscript
 #
-# ver 3.01
+# ver 3.1
 #
 #########################
 
@@ -15,7 +15,7 @@ YELLOW='\033[1;33m'
 
 # Some helper string. Don't edit them!
 PARAM2=$2
-VERSION=3.0
+VERSION=3.1
 
 ############################################################################ Checking Config files ###############################
 
@@ -97,21 +97,34 @@ fi
 
 start(){
     # start script
-    rm $SZERVER.pid.old 2>/dev/null
-    printf "${GREEN}"
-    printf "Starting $SZERVER server in background ...\n"
-    SRVCMD="$CMD $SZERVER.jar $SRVPARAM >$SZERVER.log &" 
-    eval "$SRVCMD"
-    echo $! > $SZERVER.pid
-#    java -Xms1024m -Xmx1024m -Dfile.encoding=UTF-8 -jar $SZERVER.jar $SRVPARAM >$SZERVER.log & echo $! > $SZERVER.pid
-    printf "PID: "
-    cat $SZERVER.pid
-    printf "${WHITE}\n"
+    if ! chkrun; then
+        rm $SZERVER.pid.old 2>/dev/null
+	printf "${GREEN}"
+	printf "Starting $SZERVER server in background ...\n"
+	SRVCMD="$CMD $SZERVER.jar $SRVPARAM >$SZERVER.log &" 
+	eval "$SRVCMD"
+	echo $! > $SZERVER.pid
+#    	java -Xms1024m -Xmx1024m -Dfile.encoding=UTF-8 -jar $SZERVER.jar $SRVPARAM >$SZERVER.log & echo $! > $SZERVER.pid
+	printf "PID: "
+	cat $SZERVER.pid
+    else
+	printf "${GREEN}$SZERVER server is running already with PID: "
+	cat $SZERVER.pid
+	printf ".\nNot starting it again."
+    fi
+	printf "${WHITE}\n"
 }
 
 debug(){
-    SRVCMD="$CMD $SZERVER.jar"
-    eval "$SRVCMD"
+    if ! chkrun; then
+	SRVCMD="$CMD $SZERVER.jar"
+	eval "$SRVCMD"
+    else
+	printf "${GREEN}$SZERVER server is running already with PID: "
+	cat $SZERVER.pid
+	printf "Not starting it again."
+    fi
+	printf "${WHITE}\n"
 }
 
 stop() {
@@ -129,7 +142,7 @@ if [ -e /proc/$pid ]; then
     CMDLINE=`cat /proc/$pid/cmdline`
     SERVERNAME=$SZERVER.jar
     if [ -z "${CMDLINE##*"java"*}" ] && [ -z "${CMDLINE##*$SERVERNAME*}" ]; then
-	printf "${GREEN}$SZERVER Server running, Stopping it.\n"
+	printf "${GREEN}$SZERVER Server is running, Stopping it.\n"
 	sleep 1;
 	kill -15 $pid;
 	printf "Wait up to $STOPSEC second(s) for stop server...\n"
@@ -208,7 +221,8 @@ help(){
     printf "${LRED}start${GREEN}	Start server in background\n"
     printf "${LRED}stop${GREEN}	Stop background running server\n"
     printf "${LRED}restart${GREEN}	Restart bacground running server\n"
-    printf "${LRED}debug${GREEN}	Start server in foreground. May stop with crtl+c\n"
+    printf "${LRED}debug${GREEN}	Start server in foreground. May stop server with crtl+c\n"
+    printf "${LRED}status${GREEN}	Checking server (running) status. \n"
     printf "${LRED}log${GREEN}	Show full log of server\n"
     printf "${LRED}log t${GREEN}	Tail of log file ( last $LOGLINES lines )\n"
     printf "${LRED}log f${GREEN}	Tail of log file and follow changes. Start with last $LOGLINES lines. Stop with ctrl+c key.\n"
@@ -240,7 +254,7 @@ help(){
 }
 
 syntax(){
-    printf "${WHITE}Syntax: ${GREEN}$0 ${WHITE}{ ${LRED}start${WHITE} | ${LRED}stop${WHITE} | ${LRED}restart${WHITE} | ${LRED}debug${WHITE} | ${LRED}log${WHITE} [${LRED}f${WHITE}|${LRED}t${WHITE}] | ${LRED}chkconfig${WHITE} | ${LRED}help${WHITE} | ${LRED}ver${WHITE} }\n"
+    printf "${WHITE}Syntax: ${GREEN}$0 ${WHITE}{ ${LRED}start${WHITE} | ${LRED}stop${WHITE} | ${LRED}restart${WHITE} | ${LRED}debug${WHITE} | ${LRED}log${WHITE} | ${LRED}log${WHITE} [${LRED}f${WHITE}|${LRED}t${WHITE}] | ${LRED}chkconfig${WHITE} | ${LRED}help${WHITE} | ${LRED}ver${WHITE} }\n"
 }
 
 version(){
@@ -249,7 +263,7 @@ version(){
     RELEASE=`curl --silent "https://api.github.com/repos/larryl79/Spigot-startscript/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'`
     echo "Git release: ${GREEN}$RELEASE${WHITE}"
     if [ $RELEASE \> $VERSION ]; then
-	printf "${YELLOW}Warning: ${GREEN}You are not on a latest release, ${YELLOW}please update${GREEN} for new feauters and bugfies from github.\n"
+	printf "${YELLOW}Warning: ${GREEN}You are not on a latest release, ${YELLOW}please update${GREEN} for new feauters and bugfixes from github.\n"
 	printf "\n"
     else
 	printf "${GREEN}You are on a latest release.\n"
@@ -273,6 +287,38 @@ chkconfig(){
     printf "\n"
 }
 
+chkrun(){
+
+if [ -e $SZERVER.pid ]; then
+    pid=`cat $SZERVER.pid`
+
+    if [ -e /proc/$pid ]; then
+	CMDLINE=`cat /proc/$pid/cmdline`
+	SERVERNAME=$SZERVER.jar
+	if [ -z "${CMDLINE##*"java"*}" ] && [ -z "${CMDLINE##*$SERVERNAME*}" ]; then
+	    return 0
+	else
+	    return 1
+	fi
+    fi
+
+else
+    #printf "${LRED}Error:${GREEN} Pid file missing can't stop server or not running.\nExitig.\n"
+    return 1
+fi
+
+}
+
+status(){
+    if chkrun; then
+	printf "${GREEN}$SZERVER Server is running with PID: "
+	cat $SZERVER.pid
+    else
+	printf "${GREEN}Server not runnning.\n"
+    fi
+printf "${WHITE}"
+}
+
  case "$1" in
     start)
 	start
@@ -283,6 +329,9 @@ chkconfig(){
     restart)
 	stop
 	start
+	;;
+    status)
+	status
 	;;
     debug)
 	debug
