@@ -9,7 +9,7 @@ Basically for SpigotMC I make a symlink (with .jar extension)to SpigotMC jar fil
 
 
 Files:
-   # These only for guys who too layy to type params
+   # These only for guys who too lazy to type params
 start.sh
 start_debug.sh
 stop.sh
@@ -20,7 +20,7 @@ server.sh
 
 Help screen
 
-Syntax: ./server.sh { start | stop | restart | debug | log [f|t] | chkconfig | help | ver }
+Syntax: ./server.sh { start | stop | restart | debug | status | log [f|t] | chkconfig | help | ver }
 
 Params:
 
@@ -28,6 +28,7 @@ start   Start server in background
 stop    Stop background running server
 restart Restart bacground running server
 debug   Start server in foreground. May stop with crtl+c
+status	check server (running) status.
 log     Show full log of server
 log t   Tail of log file ( last 40 lines )
 log f   Tail of log file and follow changes. Start with last 40 lines. Stop with ctrl+c key.
