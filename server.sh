@@ -15,7 +15,7 @@ YELLOW='\033[1;33m'
 
 # Some helper string. Don't edit them!
 PARAM2=$2
-VERSION=3.1
+VERSION=3.15
 
 ############################################################################ Checking Config files ###############################
 
