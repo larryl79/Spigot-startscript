@@ -1,9 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 ##########################
 #
 # Java Server startscript
 #
-# ver 3.11
+# ver 3.15
 #
 #########################
 
@@ -141,7 +141,8 @@ fi
 if [ -e /proc/$pid ]; then
     CMDLINE=`cat /proc/$pid/cmdline`
     SERVERNAME=$SZERVER.jar
-    if [ -z "${CMDLINE##*"java"*}" ] && [ -z "${CMDLINE##*$SERVERNAME*}" ]; then
+    if [[ $CMDLINE = *java* && $CMDLINE = *$SERVERNAME* ]]; then
+#    if [ -z "${CMDLINE##*"java"*}" ] && [ -z "${CMDLINE##*$SERVERNAME*}" ]; then
 	printf "${GREEN}$SZERVER Server is running, Stopping it.\n"
 	sleep 1;
 	kill -15 $pid;
@@ -178,7 +179,7 @@ if [ -e "$SZERVER.log" ]; then
     printf "Mode: "
     case "$PARAM2" in
 	f)
-	    printf "follow - list last $LOGLINES lines of log and follow changes. Exit with ctrl\+c\n"
+	    printf "follow - list last $LOGLINES lines of log and follow changes. Exit with ctrl+c\n"
 	    printf "${WHITE}"
 	    tail -n$LOGLINES -f $SZERVER.log
 	    exit 1
@@ -254,7 +255,7 @@ help(){
 }
 
 syntax(){
-    printf "${WHITE}Syntax: ${GREEN}$0 ${WHITE}{ ${LRED}start${WHITE} | ${LRED}stop${WHITE} | ${LRED}restart${WHITE} | ${LRED}debug${WHITE} | ${LRED}log${WHITE} | ${LRED}log${WHITE} [${LRED}f${WHITE}|${LRED}t${WHITE}] | ${LRED}chkconfig${WHITE} | ${LRED}help${WHITE} | ${LRED}ver${WHITE} }\n"
+    printf "${WHITE}Syntax: ${GREEN}$0 ${WHITE}{ ${LRED}start${WHITE} | ${LRED}stop${WHITE} | ${LRED}restart${WHITE} | ${LRED}debug${WHITE} | ${LRED}status${WHITE} | ${LRED}log${WHITE} [${LRED}f${WHITE}|${LRED}t${WHITE}] | ${LRED}chkconfig${WHITE} | ${LRED}help${WHITE} | ${LRED}ver${WHITE} }\n"
 }
 
 version(){
@@ -292,18 +293,26 @@ chkrun(){
 if [ -e $SZERVER.pid ]; then
     pid=`cat $SZERVER.pid`
 
-    if [ -e /proc/$pid ]; then
+    if [ -e "/proc/$pid/cmdline" ]; then
 	CMDLINE=`cat /proc/$pid/cmdline`
 	SERVERNAME=$SZERVER.jar
-	if [ -z "${CMDLINE##*"java"*}" ] && [ -z "${CMDLINE##*$SERVERNAME*}" ]; then
+#	if [ -z "${CMDLINE##*"java"*}" ] && [ -z "${CMDLINE##*$SERVERNAME*}" ]; then
+#	if [ $CMDLINE == *_"java"_* ]; then
+#&& [ $CMDLINE = *"$SERVERNAME"* ]; then
+if [[ $CMDLINE = *java* && $CMDLINE = *$SERVERNAME* ]]; then
+	    #true
 	    return 0
 	else
+	    # fase
 	    return 1
 	fi
+    else
+	# false
+	# rm $SZERVER.pid 2>/dev/null
+	return 1
     fi
-
 else
-    #printf "${LRED}Error:${GREEN} Pid file missing can't stop server or not running.\nExitig.\n"
+    # false
     return 1
 fi
 
